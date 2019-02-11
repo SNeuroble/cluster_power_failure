@@ -1,6 +1,5 @@
 #!/bin/bash
-# need to provide setpaths.sh
-# make sure instance meets memory requirements
+# must provide config file
 
 ### Setup
 

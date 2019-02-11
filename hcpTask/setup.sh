@@ -1,8 +1,7 @@
 #!/bin/bash
-#set -x
 
 ### Define paths & params for this subset of perms
-# TODO: rename these
+# TODO: consider renaming
 permDir="$outputDir/perms${first_perm}-${last_perm}"
 permOutputsDir="${permDir}/subset_results"
 outputDirSummary="${permDir}/Summary"

@@ -1,8 +1,9 @@
 #!/bin/bash
-set +x
 #########################################################################################
-# Usage: ./scripts/hcpTask/run_hcp_cluster_failure.sh ~/scripts/hcpTask/cfg.sh <1> <2>
-# After this, may want to mask results with ground truth
+# Usage: ./hcpTask/run_hcp_cluster_power_failure.sh ~/hcpTask/cfg.sh <1> <2>
+# Must provide config file (e.g., cfg.sh)
+# Make sure instance meets memory requirements
+# Run combine_results.sh when finished to combine across perms
 #########################################################################################
 
 # Setup
@@ -25,7 +26,7 @@ for perm in $(seq $first_perm $last_perm); do
     . $scriptsDir/calc_true_positives.sh >> $logfile
 
     # clean up
-    #[[ -d "$permOutputsDir" ]] && rm -r "$permOutputsDir/*"
+    [[ -d "$permOutputsDir" ]] && rm -r "$permOutputsDir/*"
 done
 
 printf "\n+++ Finished - $perm permutations complete.\n"

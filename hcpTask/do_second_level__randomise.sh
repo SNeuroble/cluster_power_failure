@@ -1,5 +1,5 @@
 #!/bin/bash
-# check memory requirements for large datasets
+# perform nonparametric correction
 
 printf "\n++ Running second level (+/- contrast).\n"
 

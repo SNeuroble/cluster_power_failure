@@ -1,8 +1,8 @@
 #!/bin/bash
-################################
-# Combine results across multiple random group analysis jobs
-# arg: config file (e.g., cfg.sh)
-################################
+###########################################################
+# Combine results across multiple jobs
+# Must provide config file (e.g., cfg.sh)
+###########################################################
 
 [[ ! -z $1 && -f $1 ]] && setupfile=$1 || { echo "Error: Config file needed." ; exit 1; }
 source $setupfile
