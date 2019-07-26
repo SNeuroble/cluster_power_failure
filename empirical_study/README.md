@@ -8,7 +8,10 @@ These scripts were used to estimate sensitivity using resampling of empirical da
 ### Prerequisites
 
 Linux/Unix
+
 FSL: `https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation`
+
+AFNI: `https://afni.nimh.nih.gov/pub/dist/doc/htmldoc/background_install/install_instructs/index.html`
 
 ### Overview
 
