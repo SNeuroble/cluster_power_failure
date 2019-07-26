@@ -1,7 +1,18 @@
 #!/bin/bash
+######################################################################
+#
+# This script is part of the Cluster Power Failure project 
+#
+# Details: Set up variables based on paths and parameters in config file
+# Usage: Called from various processing scripts (e.g., run_hcp_cluster_failure.sh)
+# Note: If you are a user, no need to change this file. User-defined paths and parameters are in the config file.
+#
+######################################################################################### 
 
-### Define paths & params for this subset of perms
-# TODO: consider renaming
+
+######### SET UP PATHS & VARIABLES FOR THIS REPETITITON #########
+
+# Paths and parameters
 permDir="$outputDir/perms${first_perm}-${last_perm}"
 permOutputsDir="${permDir}/subset_results"
 outputDirSummary="${permDir}/Summary"
@@ -10,7 +21,7 @@ logfile="$outputDirSummary/log"
 templogfile="${permOutputsDir}/tmp"
 emptyImg="${permOutputsDir}/emptyimg.nii.gz"
 
-# ...additional things for FLAME setup
+# ...additional things for FLAME setup (not needed for randomise)
 if [ "$doRandomise" == "false" ]; then
     designFile_Pos="$permOutputsDir/design_Pos.fsf"
     designFile_Neg="$permOutputsDir/design_Neg.fsf"
@@ -21,12 +32,12 @@ if [ "$doRandomise" == "false" ]; then
 fi
 
 
+############## CHECK FOR EXISTING DATA ##############
 
-### Check stuff
-
+# Check whether local data exists
 [[ ! -f $subNamesWithInput ]] && echo "Error: local repository missing. Have you run \"get_data_and_ground_truth.sh\"?" && exit
 
-# Check whether stuff in output folder
+# Check whether results already exist
 if [[ ! -z $outputDirSummary ]]; then
     if [[ -d $outputDirSummary ]] && [ "$(ls -A $outputDirSummary)" ]; then
         echo "In progress or completed: $permDir" >> $outputDirRecord
@@ -55,12 +66,12 @@ mkdir -p $permOutputsDir
 mkdir -p $outputDirSummary
 mkdir -p $subjectRandomizations
 
-# Special setup if resuming from previous process
+# SPECIAL SETUP if resuming from previous process
 if [ "$resume_previous_process" = "true" ]; then
     cp ${logfile} ${logfile}__before_resumed_process
     ActualPermutations=$(( $( tac ${logfile} | grep -m1 'Permutation ' | sed 's/Permutation \(.*\)/\1/') ))
 
-    # check whether any completed (none, pos, or both)
+    # Check whether any completed (none, positive, negative, or both)
     completedResults=$( tac ${logfile} | sed '/^Permutation '$ActualPermutations'/q' | grep "Done adding" | sed 's/Done adding \(.*\)/\1/g' )
     if [ "$completedResults" = "Pos" ]; then
         printf "Only finished Positive results for permutation $ActualPermutations. Need to do Negative, too (must run manually; fix not currently implemented)."
@@ -80,10 +91,9 @@ if [ "$resume_previous_process" = "true" ]; then
 fi
 
 
-### Prepare reference files
+############## CREATE REFERENCE FILES ##############
 
 # Create pre-randomized files, if don't exist
-# TODO: IN PROGRESS
 mkdir -p $subjectRandomizations
 for perm in $(seq $first_perm $last_perm); do
     subNames_subset=$subjectRandomizations/perm$perm
@@ -96,9 +106,6 @@ done
 fslmaths $groundTruthDcoeff -mul 0 $emptyImg
 cp $emptyImg $outputDirSummary/all_clusters_Pos.nii.gz
 cp $emptyImg $outputDirSummary/all_clusters_Neg.nii.gz
-
-
-
 
 
 

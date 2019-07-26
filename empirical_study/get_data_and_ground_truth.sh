@@ -1,7 +1,14 @@
 #!/bin/bash
-# must provide config file
+##########################################################
+#
+# Downloads all cope files and estimates Cohen's d map
+# Usage: get_data_and_ground_truth.sh cfg_groundtruth.sh
+# Make sure instance meets memory requirements
+#
+##########################################################
 
-### Setup
+
+############## SETUP ##############
 
 clear
 [[ ! -z $1 && -f $1 ]] && source $1 || { echo "Error: Config file needed." ; exit 1 ; }
@@ -15,6 +22,7 @@ dataDir_lowerLevel="${dataDir_localRepository_lowerLevel}"
 logfile="${permDir}/log"
 templogfile="${permDir}/tmp"
 emptyImg="${permOutputsDir}/emptyimg.nii.gz"
+doRandomise=false # this overwrites the config setting - set false for ground truth calculation bc faster to use FLAME to calculate t-statistic
 
 # ...additional things for FLAME setup
 if [ "$doRandomise" == "false" ]; then
@@ -28,7 +36,7 @@ fi
 
 mkdir -p $dataDir_lowerLevel 
 
-# Get names of all HCP sub, if doesn't exist
+# Get names of all HCP subjects (unless already done)
 printf "\nGetting subject data.\n"
 if [[ -f $subNames ]]; then
     read -p "Subject names file $subNames exists - overwrite?"
@@ -42,7 +50,7 @@ if [[ -f $subNames ]]; then
     fi  
 fi
 
-# Get names of all subs w data, if doesn't exist
+# Get names of all subjects that have this specific task data (unless already done)
 skip='no'
 if [[ -f $subNamesWithInput ]]; then
     read -p "File  $subNamesWithInput exists - overwrite?" 
@@ -62,7 +70,10 @@ if [ $skip == 'no' ]; then
     sed -e 's#'/$cloudDataDir_contd/$inputFileSuffix/'##g' -i $subNamesWithInput
 fi
 
-# Download data if needed
+
+############ DOWNLOAD DATA ############
+
+# Check whether data exists / whether to remove existing data
 if [ ! "$(ls -A ${dataDir_lowerLevel})" ] ; then # check whether empty
     get_data=true
 else
@@ -72,13 +83,13 @@ else
         printf "Okay, deleting previously created data for these jobs.\n"
         rm -r ${dataDir_lowerLevel}
         mkdir ${dataDir_lowerLevel}
-    # add functionality to resume downloading
     else
         printf "Okay, keeping previous data.\n"
         get_data=false
     fi
 fi
 
+# Copy data locally (unless already done)
 if [ "$get_data" = true ] ; then
     printf "Getting data.\n"
     while read subject; do
@@ -88,31 +99,36 @@ if [ "$get_data" = true ] ; then
     done < $subNamesWithInput
 fi
 
-### Process full dataset, if not done
+
+########## ESTIMATE "GROUND TRUTH" #########
+
+# Create second level results (unless already done)
 if [ ! -f $groundTruthTstat ]; then
     echo $groundTruthTstat
     printf "Processing (second level)...\n"
-    . $scriptsDir/do_second_level__randomise.sh 
-    #. $scriptsDir/do_second_level__FLAME_pos_only.sh 
+    exit
+    if [ $doRandomise = true ]; then
+        . $scriptsDir/do_second_level__randomise.sh 
+    else
+        . $scriptsDir/do_second_level__FLAME.sh 
+    fi
 else
     printf "Result file $groundTruthTstat already exists, moving on.\n"
 fi
 
-#if [ ! -d $groundTruth ]
-#    . make_TP_mask.sh
-#fi
-
-# ground truth map. t -> d: 2*t/sqrt(DOF) , where DOF ~=484 (TODO: will actually slightly vary)
+# Create ground truth map
+# t -> Cohen's D: D=2*t/sqrt(DOF) , where DOF=(n-1) for a one-sample t-test
 if [ ! -f $groundTruthDcoeff ]; then
-sqrt_DOF=$(echo "sqrt($nSubs_subset)" | bc)
-#3dcalc -a $groundTruthTstat -expr '2*a/22' -prefix $groundTruthDcoeff 
-#echo "WARNING: USING APPX DOF IN CALCULATION" # TODO: test fix w below
-3dcalc -a $groundTruthTstat -expr '2*a/'"$sqrt_DOF" -prefix $groundTruthDcoeff # TODO
+    sqrt_DOF=$(echo "sqrt($nSubs_subset-1)" | bc)
+    3dcalc -a $groundTruthTstat -expr '2*a/'"$sqrt_DOF" -prefix $groundTruthDcoeff
 else
     printf "Using existing $groundTruthDcoeff .\n"
 fi
 
-# rename results folder
+
+############## CLEANUP ##############
+
+# Rename results folder
 nSubs_total=$(wc -l < $subNamesWithInput)
 dataDir_localRepository_new="$dataMasterDir/GroupSize$nSubs_total"
 if [ ! -d $dataDir_localRepository_new ]; then
@@ -120,4 +136,6 @@ if [ ! -d $dataDir_localRepository_new ]; then
 fi
 
 printf "Finished.\n\n"
+
+
 

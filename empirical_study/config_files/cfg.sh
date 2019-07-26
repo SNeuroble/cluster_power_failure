@@ -1,37 +1,37 @@
-# Paths and parameters for Cluster Power Failure - Empirical Test
+# Paths and parameters for Cluster Power Failure scripts
 
-### PARAMETERS (SPECIFY)
+################### PARAMETERS (USER-SPECIFIED) ###################
 
 testing=false
 
-# Number of tests
-nPermutations=500
+# Number of repetitions (not used for ground truth calculation)
+nPermutations=500 
 
 # Data
-task="WM"
+task="SOCIAL"
 hcpReleaseNo="1200"
-nSubs_subset=20 #20 for final sim
+nSubs_subset=20 # (not used for ground truth calculation)
 
-# Software + thresholds 
-Software="FSL" # TODO: right now FSL is the only choice
+# Software + thresholds (much of these are not used for ground truth calculation) 
+Software="FSL" # NOTE: currently FSL is the only choice
 doRandomise=true
-doTFCE=true
+doTFCE=false
 CDT="3.1" #z-val
 CDTp="0.001" #p-val
 FWEthreshold="0.95"
-nPerms_forRandomise=1000 #5000 is recommended to resolve within p+/-0.01 
+nPerms_forRandomise=5000 #5000 is recommended to resolve within p+/-0.01
 
 # Parallelization parameters 
-njobs=8 # divy permutations across njobs
-first_job_to_launch=1 # for doing a subset of jobs
-last_job_to_launch=8 # for doing a subset of jobs
+njobs=8 # divy repetitions across njobs
+first_job_to_launch=1 # for running a subset of jobs
+last_job_to_launch=8 # for running  a subset of jobs
 
-# Base directories
-scriptsDir="/home/ec2-user/scripts/hcpTask"
+# Reference directories
+scriptsDir="/home/ec2-user/scripts/empirical_study"
 dataDir="/home/ec2-user/data/hcpTask"
 
 
-### DIRECTORIES AND OTHER SETUP
+################# DIRECTORIES AND OTHER SETUP #################
 
 # Task/cope pairs: SOCIAL_cope6; WM_cope20; GAMBLING_cope6; RELATIONAL_cope4; EMOTION_cope3
 case $task in
@@ -46,15 +46,14 @@ case $task in
     'EMOTION')
         copeNum="3" ;;
     *)
-    echo "Error: must specify task."
-    exit
+        echo "Error: must specify task."
+        exit
 esac
-
 
 # More setup
 maskThresh=$CDT
 one_minus_CDTp=$(echo "1 - $CDTp" | bc)
-nperms_per_job=$(echo "$nPermutations / ($njobs-1)" | bc) # divy up perms for jobs; output floored
+nperms_per_job=$(echo "$nPermutations / ($njobs-1)" | bc) # divy up repetitions across njobs; output floored
 njobs_in_subset=$(( $last_job_to_launch - $first_job_to_launch + 1 ))
 
 # Directories and key files
@@ -82,16 +81,23 @@ processedSuffix="processed"
 designTemplate="$scriptsDir/design_templates/design_template.fsf" #FLAME
 
 # Ground truth data folders and mask
-temp="-temp" # TODO: remove when stuff migrated back to orig bucket
-cloudDataDir="s3://hcp-openaccess$temp/HCP_${hcpReleaseNo}"
+#cloudDataDir="s3://hcp-openaccess-temp/HCP_${hcpReleaseNo}" # used during HCP migration 
+cloudDataDir="s3://hcp-openaccess/HCP_${hcpReleaseNo}"
 cloudDataDir_contd="MNINonLinear/Results/tfMRI_$task/tfMRI_${task}_hp200_s4_level2vol.feat"
-hcpConfigFile="$scriptsDir/config_files/hcp_access_S$hcpReleaseNo"
+hcpConfigFile="$scriptsDir/s3cmd_config_files/hcp_access_S$hcpReleaseNo"
 inputFileSuffix="cope${copeNum}.feat"
 subNames="$scriptsDir/hcp_file_names_S${hcpReleaseNo}.txt"
 groundTruthFolder="$dataDir_localRepository"
 maskDir="${groundTruthFolder}/mask"
-groundTruthTstat="${groundTruthFolder}/${processedSuffix}_tstat1.nii.gz"
-groundTruthMask="${groundTruthFolder}/${processedSuffix}_clustere_corrp_tstat1.nii.gz" # TODO: come back
+
+if [ "$doRandomise" = true ]; then
+    groundTruthTstat="${groundTruthFolder}/${processedSuffix}_tstat1.nii.gz"
+    groundTruthMask="${groundTruthFolder}/${processedSuffix}_clustere_corrp_tstat1.nii.gz"
+else
+    tstatSuffix=".gfeat/cope1.feat/stats/tstat1.nii.gz"
+    groundTruthTstat="${groundTruthFolder}/${processedSuffix}_Pos${tstatSuffix}"
+    # mask TBD
+fi
 groundTruthDcoeff="${groundTruthFolder}/dcoeff.nii.gz"
 
 # Output directories
@@ -102,4 +108,4 @@ outputDir="$dataMasterDir/GroupSize${nSubs_subset}__${outputDirSuffix}"
 subjectRandomizations="$outputDir/subIDs"
 outputDirRecord="$outputDir/existing_dirs.txt"
 resultImgSuffix=".gfeat/cope1.feat/cluster_mask_zstat1.nii.gz"
-combinedSummaryDir="$outputDir/Summary"
+combinedSummaryDir="$outputDir/Summary" 

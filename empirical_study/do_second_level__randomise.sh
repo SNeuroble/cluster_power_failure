@@ -1,7 +1,15 @@
 #!/bin/bash
-# perform nonparametric correction
+###################################################################### 
+#
+# This script is part of the Cluster Power Failure project 
+#
+# Details: Runs second level nonparametric inference
+# Usage: Called from run_hcp_cluster_failure.sh
+# Note: Check memory requirements for large datasets
+#
+#########################################################################################
 
-printf "\n++ Running second level (+/- contrast).\n"
+############# SETUP ############# 
 
 # Create lists of subject files
 SubjectBetas=()
@@ -26,11 +34,15 @@ fi
     &> ${templogfile}
 
 
-# Run randomise (one sample -> no need for design/contrast - just add "-1" flag)
+############# ANALYSIS #############
+
+# Run analysis with randomise (one-sample -> no need for design/contrast - just add "-1" flag)
+printf "\n++ Running second level (+/- contrast).\n"
+
 randomise -i ${permOutputsDir}/all_subjects.nii.gz -m ${permOutputsDir}/group_mask.nii.gz -n ${nPerms_forRandomise} ${RandomiseOptions_WithThresholds} -o ${permOutputsDir}/${processedSuffix}_Pos \
     >> ${templogfile}
 
-# Negative contrast
+# Run analysis for negative contrast
 fslmaths ${permOutputsDir}/all_subjects.nii.gz -mul -1 ${permOutputsDir}/all_subjects_Neg.nii.gz 
 
 randomise -i ${permOutputsDir}/all_subjects_Neg.nii.gz -m ${permOutputsDir}/group_mask.nii.gz -n ${nPerms_forRandomise} ${RandomiseOptions_WithThresholds} -o ${permOutputsDir}/${processedSuffix}_Neg \

@@ -1,13 +1,17 @@
 #!/bin/bash
-###########################################################
-# Combine results across multiple jobs
-# Must provide config file (e.g., cfg.sh)
-###########################################################
+######################################################################
+#
+# This script is part of the Cluster Power Failure project
+#
+# Details: Combines results across multiple resampling + inference jobs
+# Usage: combine_results.sh cfg.sh
+#
+######################################################################
 
 [[ ! -z $1 && -f $1 ]] && setupfile=$1 || { echo "Error: Config file needed." ; exit 1; }
 source $setupfile
 
-# Sum detected clusters (may alternatively use $outputDirRecord)
+# Sum detected clusters (see also $outputDirRecord)
 mkdir -p $combinedSummaryDir
 combinedSummaryImgPrefix="$combinedSummaryDir/all_clusters"
 
@@ -36,5 +40,4 @@ done
 
 printf "Exiting. \n"
 
-# Mask data here?
 

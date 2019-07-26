@@ -1,23 +1,25 @@
 #!/bin/bash
-#############################################################
-# Splits cluster failure analyses over multiple jobs
+######################################################################
+#
+# This script is part of the Cluster Power Failure project
+#
+# Details: Splits cluster failure analyses over multiple jobs
 # Usage: launch_parallel_processes.sh cfg.sh
-#
 # Note: last job intended to handle leftovers (e.g., 17 iterations over 5 jobs -> 4 jobs x 4 its + 1 job x 1 it)
+# Note: after complete, combine results with "combine_results.sh"
 #
-# To combine all results: combine_results.sh
-#
-#############################################################
+######################################################################
+
+
+############## SETUP ############## 
 
 [[ ! -z $1 && -f $1 ]] && setupfile=$1 || { echo "Error: Config file needed." ; exit 1; }
 source $setupfile
 
-### Setup
-
 # Check number of jobs
 [[ $njobs > $(nproc --all) ]] && printf "** Warning: more jobs than CPUs.\n"
 
-# Create file to keep track of jobs already completed (incl partially complete)
+# Create file to keep track of jobs already completed (including partially complete)
 mkdir -p $outputDir
 [[ -e $outputDirRecord ]] && rm $outputDirRecord
 touch $outputDirRecord
@@ -31,7 +33,8 @@ for perm in $(seq 1 $nPermutations); do
     fi
 done
 
-### Start jobs
+############## LAUNCH JOBS ############## 
+
 for this_job in $(seq $first_job_to_launch $last_job_to_launch); do
     first_perm=$(echo "($this_job-1) * $nperms_per_job + 1" | bc)
     last_perm=$(echo "$this_job * $nperms_per_job" | bc)
@@ -49,7 +52,7 @@ for this_job in $(seq $first_job_to_launch $last_job_to_launch); do
         fi
     fi
     
-    screen -mdS "clf${this_job}${task}" sh -c "${scriptsDir}/run_hcp_cluster_failure.sh ${setupfile} ${first_perm} ${last_perm} " #; exec bash" # uncomment to keep screen open
+    screen -mdS "clpf${this_job}${task}" sh -c "${scriptsDir}/run_hcp_cluster_failure.sh ${setupfile} ${first_perm} ${last_perm} " #; exec bash" # uncomment "exec bash" to keep screen open after completion
 
 done
 
@@ -63,7 +66,9 @@ while (( $( wc -l < $outputDirRecord ) < "$njobs_in_subset" )); do
     sleep 1
 done
 
-### Check whether any jobs already in progress or completed; if so, delete, resume, or stop
+############## CHECK STATUS ############## 
+### Check whether any jobs had already been partially run or completed - if so, delete, resume, or stop
+
 if [ $( grep "In progress or completed" $outputDirRecord | wc -l ) -gt 0 ]; then
 
     printf "\n\n--- The following directories are already in progress or completed: --- \n"
@@ -71,7 +76,7 @@ if [ $( grep "In progress or completed" $outputDirRecord | wc -l ) -gt 0 ]; then
 
     read -rep $'\nEnter \"delete all previous data\" to delete all previously created data for these jobs and start again, \"resume from previous\" to resume these jobs from previous states, and any other character to stop these jobs.\n? ' response
 
-    # parse user response
+    # Parse user response
     if [[ "$response" =~ "delete all previous data" ]]; then
         printf "Okay, deleting previously created data for these jobs.\n" 
         cmd_for_exists="y"
@@ -83,12 +88,12 @@ if [ $( grep "In progress or completed" $outputDirRecord | wc -l ) -gt 0 ]; then
         cmd_for_exists="n"
     fi
 
-    # send user command to each session
+    # Send user command to each session
     for this_job in $(seq $first_job_to_launch $last_job_to_launch); do
-        screen -S "clf${this_job}${task}" -p 0 -X stuff "${cmd_for_exists}"
+        screen -S "clpf${this_job}${task}" -p 0 -X stuff "${cmd_for_exists}"
     done
 
-else # only a subset or none already exist
+else # run normally
 
     printf "All specified jobs are safely running. \n"
 

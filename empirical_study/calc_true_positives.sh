@@ -1,5 +1,12 @@
 #!/bin/bash
-# Determine number/extent of TP by mask ROI location and sign 
+######################################################################
+#
+# This script is part of the Cluster Power Failure project
+#
+# Details: Add mask of positives to running summary by sign of detected effects 
+# Usage: Called from run_hcp_cluster_failure.sh script 
+#
+######################################################################
 
 printf "++ Getting clusters and accumulating (for true positives calculation).\n"
 
@@ -11,8 +18,6 @@ for sign in Pos Neg ; do
     clusterImg=$outputDirSummary/all_clusters_${sign}.nii.gz
     clusterImgTmp=$outputDirSummary/tmp_all_clusters_${sign}.nii.gz
 
-    # #cp ~/test.nii.gz $resultImg # TESTING ONLY: uncomment
-   
     # Get binarized clusters - apply FWE-corrected threshold to cluster-wise corrected map
     fslmaths "$resultImg" -thr ${FWEthreshold} -bin "$resultImgBin" 
     #fslmaths "$resultImg" -bin "$resultImgBin" # for FLAME
@@ -20,7 +25,7 @@ for sign in Pos Neg ; do
     # Accumulate full map of results
     fslmaths "$clusterImg" -add "$resultImgBin" "$clusterImgTmp"
 
-    # TODO: Old safety bc afni wouldn't create the above output image if the input img was empty... check whether still needed here
+    # Replace previous result with current (the check is because some software won't create any output if the input is empty)
     if [[ -f $clusterImg && -f $clusterImgTmp ]]; then
         rm $clusterImg
         mv $clusterImgTmp $clusterImg
