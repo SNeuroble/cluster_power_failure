@@ -12,28 +12,24 @@ FSL: `https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation`
 
 ### Overview
 
-> Step 1. Check user-defined parameters in configuration file:
-
-`clf_config_files/cfg.sh`
-
-Parameters include: number of repetitions, task, number of subjects in resampled sample, etc.
+> Step 1. Check user-defined parameters in configuration file: `config_files/cfg.sh` . Parameters include: number of repetitions, task, number of subjects in resampled sample, etc.
 
 > Step 2. Obtain task-relevant first level data and calculate ground truth effect size map.
 
 ```shell
-$ get_data_and_ground_truth.sh clf_config_files/cfg.sh
+$ get_data_and_ground_truth.sh config_files/cfg.sh
 ```
 
 > Step 3. Perform resampling across multiple jobs.
 
 ```shell
-$ launch_parallel_processes.sh clf_config_files/cfg.sh
+$ launch_parallel_processes.sh config_files/cfg.sh
 ```
 
 > Step 4. Combine resampling results across jobs.
 
 ```shell
-$ combine_results.sh clf_config_files/cfg.sh
+$ combine_results.sh config_files/cfg.sh
 ```
 
 ## Contact
