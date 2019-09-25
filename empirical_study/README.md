@@ -15,7 +15,7 @@ AFNI: `https://afni.nimh.nih.gov/pub/dist/doc/htmldoc/background_install/install
 
 ### Overview
 
-> Step 1. Check user-defined parameters in configuration file: `config_files/cfg.sh` . Parameters include: number of repetitions, task, number of subjects in resampled sample, etc.
+> Step 1. Check user-defined parameters in configuration file: `config_files/cfg.sh` . User-defined parameters include: number of repetitions, task, number of subjects in resampled sample, data directory, scripts directory, etc.
 
 > Step 2. Obtain task-relevant first level data and calculate ground truth effect size map.
 
