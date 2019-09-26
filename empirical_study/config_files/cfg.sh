@@ -19,12 +19,12 @@ doTFCE=false
 CDT="3.1" #z-val
 CDTp="0.001" #p-val
 FWEthreshold="0.95"
-nPerms_forRandomise=5000 #5000 is recommended to resolve within p+/-0.01
+nPerms_forRandomise=1000 #1000 is recommended to resolve within p+/-0.01
 
 # Parallelization parameters 
-njobs=8 # divy repetitions across njobs
+njobs=17 # divy repetitions across njobs - recommended one more job than CPUs - will put leftover repetitions in last job
 first_job_to_launch=1 # for running a subset of jobs
-last_job_to_launch=8 # for running  a subset of jobs
+last_job_to_launch=17 # for running  a subset of jobs
 
 # Reference directories
 scriptsDir="/home/ec2-user/scripts/empirical_study"
