@@ -42,7 +42,7 @@ if [[ -f $subNames ]]; then
     read -p "Subject names file $subNames exists - overwrite?"
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         rm $subNames
-        s3cmd -c $hcpConfigFile ls $cloudDataDir > $subNames
+        s3cmd -c $hcpConfigFile ls $cloudDataDir/ > $subNames
         sed -e 's#                       DIR   '$cloudDataDir'##g' -i $subNames
         sed -e 's#/##g' -i $subNames
     else
@@ -106,7 +106,6 @@ fi
 if [ ! -f $groundTruthTstat ]; then
     echo $groundTruthTstat
     printf "Processing (second level)...\n"
-    exit
     if [ $doRandomise = true ]; then
         . $scriptsDir/do_second_level__randomise.sh 
     else
