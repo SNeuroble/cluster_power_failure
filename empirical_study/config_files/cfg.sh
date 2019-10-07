@@ -30,6 +30,8 @@ last_job_to_launch=17 # for running  a subset of jobs
 scriptsDir="/home/ec2-user/scripts/empirical_study"
 dataDir="/home/ec2-user/data/hcpTask"
 
+# HCP S3 access config file
+hcpConfigFile="$scriptsDir/s3cmd_config_files/hcp_access_S$hcpReleaseNo"
 
 ################# DIRECTORIES AND OTHER SETUP #################
 
@@ -84,7 +86,6 @@ designTemplate="$scriptsDir/design_templates/design_template.fsf" #FLAME
 #cloudDataDir="s3://hcp-openaccess-temp/HCP_${hcpReleaseNo}" # used during HCP migration 
 cloudDataDir="s3://hcp-openaccess/HCP_${hcpReleaseNo}"
 cloudDataDir_contd="MNINonLinear/Results/tfMRI_$task/tfMRI_${task}_hp200_s4_level2vol.feat"
-hcpConfigFile="$scriptsDir/s3cmd_config_files/hcp_access_S$hcpReleaseNo"
 inputFileSuffix="cope${copeNum}.feat"
 subNames="$scriptsDir/hcp_file_names_S${hcpReleaseNo}.txt"
 groundTruthFolder="$dataDir_localRepository"
