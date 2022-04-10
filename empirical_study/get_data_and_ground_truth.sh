@@ -116,10 +116,10 @@ else
 fi
 
 # Create ground truth map
-# t -> Cohen's D: D=2*t/sqrt(DOF) , where DOF=(n-1) for a one-sample t-test
+# t -> Cohen's D: D=t/sqrt(N) for a one-sample t-test
 if [ ! -f $groundTruthDcoeff ]; then
-    sqrt_DOF=$(echo "sqrt($nSubs_subset-1)" | bc)
-    3dcalc -a $groundTruthTstat -expr '2*a/'"$sqrt_DOF" -prefix $groundTruthDcoeff
+    sqrt_n=$(echo "sqrt($nSubs_subset)" | bc)
+    3dcalc -a $groundTruthTstat -expr 'a/'"$sqrt_n" -prefix $groundTruthDcoeff
 else
     printf "Using existing $groundTruthDcoeff .\n"
 fi
